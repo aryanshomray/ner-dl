@@ -1,29 +1,62 @@
-import pandas as pd
+import spacy
+nlp = spacy.load('en_core_web_lg')
+
+
 
 class Process:
-    def __init__(self, data):
-        self.max_sent_size=100
-        self.vec_size=100
-        self.data=data
+
+    def __init__(self):
+        self.trained_sentences=[]
+        self.corr_tags=[]
         self.words=set()
         self.tags=set()
-        self.sentences=[]
-        self.tag=[]
-        self.x=[]
-        self.y=[]
-
-    def get_data(self):
-        words=[]
+        self.vec_size=300
+        self.max_length=20
+        self.word2vec=dict()
+        self.vec_sent=[]
+        self.vec_tags=[]
+        self.train=[]
+        self.labels=[]
+    def fit_data(self,data):
+        '''This function is used to convert the raw data into sentences along with the tags for further training.'''
+        sent=[]
         tags=[]
-        df=pd.read_csv(self.data,header=None,index=None)
-        for index,rows in df.iterrows():
-            if not rows[0]:
-                words.append(rows[1])
-                tags.append(rows[3])
-                self.words.add(rows[1])
-                self.words.add(rows[3])
-            elif len(words) and len(tags):
-                    self.sentences.append(words)
-                    self.tag.append(tags)
-                    words = [rows[1]]
-                    tags = [rows[3]]
+        with open(data,'r') as file:
+            for l in file:
+                line=l.split(',')
+                if not line[0]:
+                    if not line[1].isalpha():
+                        continue
+                    sent.append(line[1].lower())
+                    tags.append(line[3])
+                    self.words.add(line[1].lower())
+                    self.tags.add(line[3])
+
+                else:
+
+                    self.trained_sentences.append(sent)
+                    self.corr_tags.append(tags)
+                    sent = []
+                    tags = []
+                    if not line[1].isalpha():
+                        continue
+                    sent.append(line[1].lower())
+                    tags.append(line[3])
+                    self.words.add(line[1].lower())
+                    self.tags.add(line[3])
+
+    def sent_vectorizer(self):
+
+
+    def vector_gen(self):
+        for i in self.words:
+            self.word2vec[i]=nlp(i).vector
+        sent_vectorizer()
+
+
+
+
+
+
+
+
