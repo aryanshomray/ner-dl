@@ -1,9 +1,10 @@
 import spacy
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+
 nlp = spacy.load('en_core_web_lg')
-
-
-
 class Process:
+    nlp = spacy.load('en_core_web_lg')
 
     def __init__(self):
         self.trained_sentences=[]
@@ -17,6 +18,8 @@ class Process:
         self.vec_tags=[]
         self.train=[]
         self.labels=[]
+        self.tag_dict={'O':[1,0,0,0,0],'geo':[0,1,0,0,0],'gpe':[0,0,1,0,0],'per':[0,0,0,1,0],'org':[0,0,0,0,1]}
+
     def fit_data(self,data):
         '''This function is used to convert the raw data into sentences along with the tags for further training.'''
         sent=[]
@@ -28,12 +31,13 @@ class Process:
                     if not line[1].isalpha():
                         continue
                     sent.append(line[1].lower())
-                    tags.append(line[3])
+                    if line[3]=='O':
+                        tags.append(line[3])
+                    else:
+                        tags.append(line[3][2:])
                     self.words.add(line[1].lower())
                     self.tags.add(line[3])
-
                 else:
-
                     self.trained_sentences.append(sent)
                     self.corr_tags.append(tags)
                     sent = []
@@ -41,21 +45,32 @@ class Process:
                     if not line[1].isalpha():
                         continue
                     sent.append(line[1].lower())
-                    tags.append(line[3])
+                    if line[3] == 'O':
+                        tags.append(line[3])
+                    else:
+                        tags.append(line[3][2:])
                     self.words.add(line[1].lower())
                     self.tags.add(line[3])
 
-    def sent_vectorizer(self):
-
-
     def vector_gen(self):
-        for i in self.words:
-            self.word2vec[i]=nlp(i).vector
-        sent_vectorizer()
+        for word in self.words:
+            self.word2vec[word]=nlp(word).vector
 
+        for sen in self.trained_sentences:
+            sent=[]
+            for word in sen:
+                sent.append(self.word2vec[word])
+            self.vec_sent.append(sent)
 
+        for sen_tag in self.corr_tags:
+            tags = []
+            for tag in sen_tag:
+                tags.append(self.tag_dict[tag])
+            self.vec_tags.append(tags)
 
-
+    def padding(self):
+        self.train=pad_sequences(self.vec_sent, maxlen=30, dtype='int32', padding='pre', truncating='pre', value=0.0)
+        self.labels=pad_sequences(self.vec_tags, maxlen=30, dtype='int32', padding='pre', truncating='pre', value=0.0)
 
 
 
