@@ -1,10 +1,13 @@
 import spacy
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import tensorflow as tf
+
+nlp = spacy.load('en_core_web_sm')
 
 
-nlp = spacy.load('en_core_web_lg')
 class Process:
-    nlp = spacy.load('en_core_web_lg')
+
+    nlp = spacy.load('en_core_web_sm')
 
     def __init__(self):
         self.trained_sentences=[]
@@ -18,9 +21,10 @@ class Process:
         self.vec_tags=[]
         self.train=[]
         self.labels=[]
-        self.tag_dict={'O':[1,0,0,0,0],'geo':[0,1,0,0,0],'gpe':[0,0,1,0,0],'per':[0,0,0,1,0],'org':[0,0,0,0,1]}
+        self.tag_dict={'O':[1,0,0,0,0], 'geo':[0,1,0,0,0], 'gpe':[0,0,1,0,0], 'per':[0,0,0,1,0], 'org':[0,0,0,0,1]}
+        self.batch_size=None
 
-    def fit_data(self,data):
+    def fit_data(self, data):
         '''This function is used to convert the raw data into sentences along with the tags for further training.'''
         sent=[]
         tags=[]
@@ -55,13 +59,11 @@ class Process:
     def vector_gen(self):
         for word in self.words:
             self.word2vec[word]=nlp(word).vector
-
         for sen in self.trained_sentences:
             sent=[]
             for word in sen:
                 sent.append(self.word2vec[word])
             self.vec_sent.append(sent)
-
         for sen_tag in self.corr_tags:
             tags = []
             for tag in sen_tag:
@@ -72,6 +74,10 @@ class Process:
         self.train=pad_sequences(self.vec_sent, maxlen=30, dtype='int32', padding='pre', truncating='pre', value=0.0)
         self.labels=pad_sequences(self.vec_tags, maxlen=30, dtype='int32', padding='pre', truncating='pre', value=0.0)
 
+    def test_prep(self,line):
 
-
-
+        line=tf.keras.preprocessing.text.text_to_word_sequence(line, filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n',
+                                                               lower=True, split=' ')
+        line = [nlp(word).vector for word in line if not word.isalpha()]
+        line = pad_sequences(line, maxlen=30, dtype='int32', padding='pre', truncating='pre', value=0.0)
+        return line
