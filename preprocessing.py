@@ -15,7 +15,7 @@ class Process:
         self.corr_tags=[]
         self.words=set()
         self.tags=set()
-        self.vec_size=96
+        self.vec_size=300
         self.max_length=20
         self.word2vec=dict()
         self.vec_sent=[]
