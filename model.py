@@ -1,5 +1,12 @@
-import tensorflow as tf
+
 import numpy as np
+from tensorflow.python.keras.callbacks import TensorBoard
+from time import time
+from tensorflow.keras.layers import Bidirectional,TimeDistributed,Dense,LSTM
+from tensorflow.keras import Sequential
+from tensorflow.keras.models import load_model
+
+tensorboard=TensorBoard(log_dir='logs/{}'.format(time()))
 
 
 class MyModel:
@@ -14,18 +21,18 @@ class MyModel:
 
     def model_compile(self):
 
-        self.model=tf.keras.Sequential()
+        self.model=Sequential()
 
-        self.model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=150,
+        self.model.add(Bidirectional(LSTM(units=150,
                                                                           activation='relu',
                                                                           input_shape=(self.train.shape[1],
                                                                                        self.train.shape[2]),
 
                                                                           return_sequences=True)))
 
-        self.model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(9,activation='softmax')))
+        self.model.add(TimeDistributed(Dense(9,activation='softmax')))
 
-        self.model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+        self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     def training(self, train, labels, epoch=10, batch_size=64):
 
@@ -37,7 +44,7 @@ class MyModel:
 
     def load_model(self):
 
-        self.model=tf.keras.models.load_model('mymodel.h5')
+        self.model=load_model('mymodel.h5')
 
 
     def predict(self, predict):
